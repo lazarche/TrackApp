@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">TrackMap</string>
+    <string name="title_activity_maps_test">MapsActivityTest</string>
+    <string name="title_activity_show_track_on_map">ShowTrackOnMap</string>
+    <string name="title_activity_track_map">TrackMap</string>
+    <string name="title_activity_maps">MapsActivity</string>
+</resources>
