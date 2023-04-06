@@ -6,7 +6,7 @@ import com.google.android.gms.maps.model.StyleSpan;
 
 import java.util.List;
 
-public class SpeedColor {
+public class SpeedColor{
     StyleSpan style;
     float speedLimit;
 
@@ -52,4 +52,6 @@ public class SpeedColor {
         //Return largest
         return  list.get(list.size()-1);
     }
+
+
 }

@@ -15,6 +15,9 @@ public class TrackData {
     @ColumnInfo(name = "date")
     public String date;
 
+    @ColumnInfo(name = "time")
+    public float time;
+
     @ColumnInfo(name = "data")
     public String data;
 }

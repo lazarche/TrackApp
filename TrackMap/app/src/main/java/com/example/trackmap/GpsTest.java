@@ -48,10 +48,18 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.maps.model.StrokeStyle;
 import com.google.android.gms.maps.model.StyleSpan;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.Dictionary;
 import java.util.List;
 import java.util.Random;
@@ -69,6 +77,7 @@ public class GpsTest extends AppCompatActivity implements OnMapReadyCallback, On
     GoogleMap map;
     Polyline track;
     Location lastLoc;
+    LocationCallback fusedTrackerCallback;
     boolean mapReady = false;
 
     //Camera
@@ -81,6 +90,8 @@ public class GpsTest extends AppCompatActivity implements OnMapReadyCallback, On
 
     //Recording
     boolean recording = false;
+    Instant start;
+    String name;
 
     //Trackdata
     List<SpeedColor> list;
@@ -100,16 +111,33 @@ public class GpsTest extends AppCompatActivity implements OnMapReadyCallback, On
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
+        //To change
         list = new ArrayList<>();
         list.add(new SpeedColor(new StyleSpan(Color.GREEN), 25));
         list.add(new SpeedColor(new StyleSpan(Color.BLUE), 60));
         list.add(new SpeedColor(new StyleSpan(Color.YELLOW), 90));
         list.add(new SpeedColor(new StyleSpan(Color.RED), 999));
+
+        Collections.sort(list, new Comparator<SpeedColor>() {
+            @Override
+            public int compare(SpeedColor o1, SpeedColor o2) {
+                return -Float.compare(o1.getSpeedLimit(), o2.getSpeedLimit());
+            }
+        });
+
+
+        //Get extas
+        Bundle extras = getIntent().getExtras();
+        if(extras != null) {
+            name = extras.getString("name");
+        }
+
         SetUpUi();
     }
 
     /* /region */
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     private void SetUpUi() {
         followButton = (ImageButton) findViewById(R.id.btn_follow);
         followButton.setOnClickListener(new View.OnClickListener() {
@@ -163,6 +191,7 @@ public class GpsTest extends AppCompatActivity implements OnMapReadyCallback, On
         return true;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     private boolean StopRecording() {
         if(!recording)
             return false;
@@ -171,9 +200,12 @@ public class GpsTest extends AppCompatActivity implements OnMapReadyCallback, On
         recording = false;
         recordButton.setImageResource(R.drawable.record_start);
 
+        float timeElapsed =  Duration.between(start, Instant.now()).toMillis();
+
         TrackData data = new TrackData();
         data.name = trackData.name;
         data.date = trackData.date;
+        data.time = timeElapsed;
         data.data = Track.TrackDataToString(trackData);
 
         //Save
@@ -195,6 +227,7 @@ public class GpsTest extends AppCompatActivity implements OnMapReadyCallback, On
         Toast.makeText(GpsTest.this, "Tap and hold to discard recording", Toast.LENGTH_SHORT).show();
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     private void StartRecording() {
         Log.i("RECORDING STATUS", recording + " ");
         if(!recording) {
@@ -202,7 +235,13 @@ public class GpsTest extends AppCompatActivity implements OnMapReadyCallback, On
             Log.i("RECORDING STATUS", "Snimanje krenulo");
             RestartPolyline();
             recording = true;
-            trackData = new Track(Calendar.getInstance().getTime().toString(), Calendar.getInstance().getTime().toString());
+            start = Instant.now();
+
+            Date date = Calendar.getInstance().getTime();
+            DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
+            String strDate = dateFormat.format(date);
+
+            trackData = new Track(name, strDate);
         } else {
             Toast.makeText(GpsTest.this, "Tap and hold stop button to stop", Toast.LENGTH_SHORT).show();
         }
@@ -221,7 +260,8 @@ public class GpsTest extends AppCompatActivity implements OnMapReadyCallback, On
             finish();
         }
 
-        LocationCallback fusedTrackerCallback = new LocationCallback() {
+         fusedTrackerCallback = new LocationCallback() {
+            @RequiresApi(api = Build.VERSION_CODES.O)
             @Override
             public void onLocationResult(@NonNull LocationResult locationResult) {
                 Location location = locationResult.getLastLocation();
@@ -267,6 +307,7 @@ public class GpsTest extends AppCompatActivity implements OnMapReadyCallback, On
         startLocationUpdates();
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     public void updateTrack(Location location) {
         if(!recording)
             return;
@@ -279,13 +320,16 @@ public class GpsTest extends AppCompatActivity implements OnMapReadyCallback, On
 
         Random r = new Random();
         //Color
-        StyleSpan ss = list.get(r.nextInt(list.size())).getStyle(); //SpeedColor.getMatchingColor(list, location.getSpeed()).getStyle();
+        StyleSpan ss = SpeedColor.getMatchingColor(list, location.getSpeed()).getStyle();
         List<StyleSpan> ssPoints = track.getSpans();
         ssPoints.add(ss);
         track.setSpans(ssPoints);
 
+        //Time
+        float timeElapsed =  Duration.between(start, Instant.now()).toMillis();
+
         //Trackdata
-        trackData.AddSegment(new TrackSegment(point, location.getSpeed()));
+        trackData.AddSegment(new TrackSegment(point, location.getSpeed(), timeElapsed));
 
         //Move Camera
         if(following) {
@@ -298,8 +342,9 @@ public class GpsTest extends AppCompatActivity implements OnMapReadyCallback, On
     public void onBackPressed() {
         if(recording)
             Toast.makeText(getApplicationContext(), "Stop the recording first!", Toast.LENGTH_SHORT).show();
-        else
+        else {
             super.onBackPressed();
+        }
     }
 
     @Override
@@ -312,5 +357,11 @@ public class GpsTest extends AppCompatActivity implements OnMapReadyCallback, On
                 Log.d("MapsDemo", "The legacy version of the renderer is used.");
                 break;
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        fusedLocationProviderClient.removeLocationUpdates(fusedTrackerCallback);
     }
 }

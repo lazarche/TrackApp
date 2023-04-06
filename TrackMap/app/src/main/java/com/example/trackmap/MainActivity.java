@@ -10,12 +10,16 @@ import androidx.room.Room;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.text.InputType;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
@@ -46,17 +50,50 @@ public class MainActivity extends AppCompatActivity {
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, GpsTest.class);
-                startActivity(intent);
+
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                builder.setTitle("Choose name for track");
+
+                // Set up the input
+                final EditText input = new EditText(builder.getContext());
+                // Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
+                input.setInputType(InputType.TYPE_CLASS_TEXT);
+                builder.setView(input);
+
+                // Set up the buttons
+                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String name = input.getText().toString();
+
+                        if(name == null)
+                            name = "DEFAULT NAME";
+
+                        Intent intent = new Intent(MainActivity.this, GpsTest.class);
+                        intent.putExtra("name", name);
+                        startActivity(intent);
+                    }
+                });
+                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+
+                builder.show();
             }
         });
 
-
         CheckPermissions();
+        PopulateView();
+    }
 
+    void PopulateView() {
         //Get data
-        //Test only
         AppDatabase db = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "TrackMap").allowMainThreadQueries().fallbackToDestructiveMigration().build();
+        //db.clearAllTables();
         TrackDao trackDao = db.trackDao();
         List<TrackData> tracks = trackDao.getAll();
         db.close();
@@ -68,10 +105,12 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(layoutManager);
         TrackAdapter trackAdapter = new TrackAdapter(tracks, getApplicationContext());
         recyclerView.setAdapter(trackAdapter);
+    }
 
-
-        Log.i("DATABASE", tracks.size() + "");
-
+    @Override
+    protected void onResume() {
+        super.onResume();
+        PopulateView();
     }
 
 

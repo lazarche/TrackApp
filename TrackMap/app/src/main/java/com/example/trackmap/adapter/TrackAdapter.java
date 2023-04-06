@@ -1,6 +1,7 @@
 package com.example.trackmap.adapter;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,10 +12,13 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.trackmap.GpsTest;
 import com.example.trackmap.MainActivity;
 import com.example.trackmap.R;
+import com.example.trackmap.TrackView;
 import com.example.trackmap.database.TrackData;
 
+import java.util.Calendar;
 import java.util.List;
 
 public class TrackAdapter extends RecyclerView.Adapter<TrackAdapter.TrackViewHolder> {
@@ -39,9 +43,8 @@ public class TrackAdapter extends RecyclerView.Adapter<TrackAdapter.TrackViewHol
     public void onBindViewHolder(@NonNull TrackAdapter.TrackViewHolder holder, int position) {
         holder.textTitle.setText(itemList.get(position).name);
         holder.textTitle.setTag(itemList.get(position).idTrack);
-        holder.textDate.setText(itemList.get(position).date);
-        ///TODO CHANGE THIS
-        holder.textTime.setText(itemList.get(position).date);
+        holder.textDate.setText("Date: " + itemList.get(position).date);
+        holder.textTime.setText("Time: " + itemList.get(position).time/1000);
     }
 
     @Override
@@ -65,7 +68,10 @@ public class TrackAdapter extends RecyclerView.Adapter<TrackAdapter.TrackViewHol
             btn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Toast.makeText(context, "VOLIM CIVOT", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(context, TrackView.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    intent.putExtra("idd",Integer.parseInt(textTitle.getTag().toString()));
+                    context.startActivity(intent);
                 }
             });
         }

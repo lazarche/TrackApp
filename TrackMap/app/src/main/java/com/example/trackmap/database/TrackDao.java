@@ -15,7 +15,7 @@ public interface TrackDao {
     List<TrackData> getAll();
 
     @Query("SELECT * FROM trackdata WHERE idTrack = :idd")
-    List<TrackData> findById(int idd);
+    TrackData findById(int idd);
 
     @Insert
     void insertTrackData(TrackData trackData);
