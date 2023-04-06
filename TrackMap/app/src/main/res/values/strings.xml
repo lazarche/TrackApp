@@ -4,4 +4,9 @@
     <string name="title_activity_show_track_on_map">ShowTrackOnMap</string>
     <string name="title_activity_track_map">TrackMap</string>
     <string name="title_activity_maps">MapsActivity</string>
+    <string name="record_butrron">Start/Stop recording</string>
+    <string name="cancel_button">Cancels recording</string>
+    <string name="follow_camera">Follow</string>
+    <string name="toggle_follow_off">OFF</string>
+    <string name="toggle_follow_on">FOLLOW</string>
 </resources>
