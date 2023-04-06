@@ -4,8 +4,10 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.room.Room;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -14,12 +16,19 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.example.trackmap.database.AppDatabase;
+import com.example.trackmap.database.TrackDao;
+import com.example.trackmap.database.TrackData;
+
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity {
 
     private static final int GPS_PERMISSION_CODE = 60;
     private static final int INTERNET_PERMISSION_CODE = 70;
     private static final int GPS_FINE_PERMISSION_CODE = 80;
 
+    @SuppressLint("WrongThread")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,6 +45,15 @@ public class MainActivity extends AppCompatActivity {
 
 
         CheckPermissions();
+
+        //Test only
+        AppDatabase db = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "TrackMap").allowMainThreadQueries().fallbackToDestructiveMigration().build();
+        TrackDao trackDao = db.trackDao();
+        List<TrackData> tracks = trackDao.getAll();
+        db.close();
+
+        Log.i("DATABASE", tracks.size() + "");
+
     }
 
 

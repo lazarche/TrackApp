@@ -5,6 +5,7 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.room.Room;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -22,7 +23,12 @@ import android.widget.ImageButton;
 import android.widget.Toast;
 
 
+import com.example.trackmap.database.AppDatabase;
+import com.example.trackmap.database.TrackDao;
+import com.example.trackmap.database.TrackData;
 import com.example.trackmap.track.SpeedColor;
+import com.example.trackmap.track.Track;
+import com.example.trackmap.track.TrackSegment;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -45,6 +51,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Dictionary;
 import java.util.List;
 import java.util.Random;
@@ -62,6 +69,7 @@ public class GpsTest extends AppCompatActivity implements OnMapReadyCallback, On
     GoogleMap map;
     Polyline track;
     Location lastLoc;
+    boolean mapReady = false;
 
     //Camera
     boolean following = true;
@@ -74,7 +82,9 @@ public class GpsTest extends AppCompatActivity implements OnMapReadyCallback, On
     //Recording
     boolean recording = false;
 
+    //Trackdata
     List<SpeedColor> list;
+    Track trackData;
 
     @SuppressLint("NewApi")
     @Override
@@ -124,6 +134,18 @@ public class GpsTest extends AppCompatActivity implements OnMapReadyCallback, On
         cancelButton.setOnLongClickListener(v -> DiscardRecording());
     }
 
+    private void RestartPolyline() {
+        if(!mapReady)
+            return;
+
+        if(track != null)
+            track.remove();
+
+        PolylineOptions polylineOptions = new PolylineOptions();
+        polylineOptions.width(10);
+        track = map.addPolyline(polylineOptions);
+    }
+
     private boolean DiscardRecording() {
         if(!recording) {
             Toast.makeText(GpsTest.this, "Recording must be in progress", Toast.LENGTH_SHORT).show();
@@ -131,10 +153,9 @@ public class GpsTest extends AppCompatActivity implements OnMapReadyCallback, On
         }
 
         Toast.makeText(GpsTest.this, "Recording is discarded", Toast.LENGTH_SHORT).show();
-        List<LatLng> empty = new ArrayList<LatLng>();
-        List<StyleSpan> emptySpan = new ArrayList<StyleSpan>();
-        track.setPoints(empty);
-        track.setSpans(emptySpan);
+
+        //Reset track
+        RestartPolyline();
 
         recording = false;
         recordButton.setImageResource(R.drawable.record_start);
@@ -143,11 +164,25 @@ public class GpsTest extends AppCompatActivity implements OnMapReadyCallback, On
     }
 
     private boolean StopRecording() {
+        if(!recording)
+            return false;
+
         Toast.makeText(GpsTest.this, "Recording is saved", Toast.LENGTH_SHORT).show();
         recording = false;
         recordButton.setImageResource(R.drawable.record_start);
 
-        //Save recording
+        TrackData data = new TrackData();
+        data.name = trackData.name;
+        data.date = trackData.date;
+        data.data = Track.TrackDataToString(trackData);
+
+        //Save
+        AppDatabase db = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "TrackMap").allowMainThreadQueries().build();
+        TrackDao trackDao = db.trackDao();
+        trackDao.insertTrackData(data);
+        db.close();
+
+        Log.i("RECORDING STATUS", "Recording is saved");
         return  true;
     }
 
@@ -165,9 +200,10 @@ public class GpsTest extends AppCompatActivity implements OnMapReadyCallback, On
         if(!recording) {
             recordButton.setImageResource(R.drawable.record_stop);
             Log.i("RECORDING STATUS", "Snimanje krenulo");
+            RestartPolyline();
             recording = true;
+            trackData = new Track(Calendar.getInstance().getTime().toString(), Calendar.getInstance().getTime().toString());
         } else {
-            Log.i("KOJI KURAC", "KOJI KURAC");
             Toast.makeText(GpsTest.this, "Tap and hold stop button to stop", Toast.LENGTH_SHORT).show();
         }
     }
@@ -192,6 +228,7 @@ public class GpsTest extends AppCompatActivity implements OnMapReadyCallback, On
                 if(location != null) {
                     Log.i("LOCATION REQUEST", "Got location : " + location);
                     updateTrack(location);
+
                     lastLoc = location;
                 }
             }
@@ -205,11 +242,9 @@ public class GpsTest extends AppCompatActivity implements OnMapReadyCallback, On
         map = googleMap;
         map.getUiSettings().setMyLocationButtonEnabled(false);
 
+        mapReady = true;
 
-        PolylineOptions polylineOptions = new PolylineOptions();
-        polylineOptions.color(Color.BLUE);
-        polylineOptions.width(10);
-        track = map.addPolyline(polylineOptions);
+        RestartPolyline();
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             //No gps no play
@@ -233,6 +268,9 @@ public class GpsTest extends AppCompatActivity implements OnMapReadyCallback, On
     }
 
     public void updateTrack(Location location) {
+        if(!recording)
+            return;
+
         //Location
         LatLng point = new LatLng(location.getLatitude(), location.getLongitude());
         List<LatLng> points = track.getPoints();
@@ -246,7 +284,8 @@ public class GpsTest extends AppCompatActivity implements OnMapReadyCallback, On
         ssPoints.add(ss);
         track.setSpans(ssPoints);
 
-        Log.d("SPEED", location.getSpeed() + "");
+        //Trackdata
+        trackData.AddSegment(new TrackSegment(point, location.getSpeed()));
 
         //Move Camera
         if(following) {
