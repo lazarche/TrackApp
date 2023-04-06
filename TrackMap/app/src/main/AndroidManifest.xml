@@ -30,7 +30,7 @@
         -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="YOUR_API_KEY" />
+            android:value="AIzaSyDySZdcsTsnoj3L6bIiBrfxUc5zAaTgOuM" />
 
         <activity
             android:name=".GpsTest"
