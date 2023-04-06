@@ -4,6 +4,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
 
 import android.Manifest;
@@ -14,12 +16,15 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
+import com.example.trackmap.adapter.TrackAdapter;
 import com.example.trackmap.database.AppDatabase;
 import com.example.trackmap.database.TrackDao;
 import com.example.trackmap.database.TrackData;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -28,13 +33,16 @@ public class MainActivity extends AppCompatActivity {
     private static final int INTERNET_PERMISSION_CODE = 70;
     private static final int GPS_FINE_PERMISSION_CODE = 80;
 
+    RecyclerView recyclerView;
+    TrackAdapter trackAdapter;
+
     @SuppressLint("WrongThread")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Button btn = findViewById(R.id.bntMap);
+        ImageButton btn = findViewById(R.id.btnMap);
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -46,11 +54,21 @@ public class MainActivity extends AppCompatActivity {
 
         CheckPermissions();
 
+        //Get data
         //Test only
         AppDatabase db = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "TrackMap").allowMainThreadQueries().fallbackToDestructiveMigration().build();
         TrackDao trackDao = db.trackDao();
         List<TrackData> tracks = trackDao.getAll();
         db.close();
+
+
+        //Set up list
+        recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
+        recyclerView.setLayoutManager(layoutManager);
+        TrackAdapter trackAdapter = new TrackAdapter(tracks, getApplicationContext());
+        recyclerView.setAdapter(trackAdapter);
+
 
         Log.i("DATABASE", tracks.size() + "");
 
@@ -75,9 +93,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           @NonNull String[] permissions,
-                                           @NonNull int[] grantResults)
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)
     {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
@@ -103,4 +119,5 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
 }
