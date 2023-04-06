@@ -91,9 +91,10 @@ public class TrackView extends FragmentActivity implements OnMapReadyCallback, O
     public void ShowTrack() {
         //To change
         List<SpeedColor> list = new ArrayList<>();
-        list.add(new SpeedColor(new StyleSpan(Color.GREEN), 25));
-        list.add(new SpeedColor(new StyleSpan(Color.BLUE), 60));
-        list.add(new SpeedColor(new StyleSpan(Color.YELLOW), 90));
+        list.add(new SpeedColor(new StyleSpan(Color.GREEN), 5.5f));
+        list.add(new SpeedColor(new StyleSpan(Color.BLUE), 8.3f));
+        list.add(new SpeedColor(new StyleSpan(Color.MAGENTA), 11f));
+        list.add(new SpeedColor(new StyleSpan(Color.YELLOW), 20f));
         list.add(new SpeedColor(new StyleSpan(Color.RED), 999));
 
         Collections.sort(list, new Comparator<SpeedColor>() {
@@ -115,10 +116,14 @@ public class TrackView extends FragmentActivity implements OnMapReadyCallback, O
         List<StyleSpan> styleList = new LinkedList<>();
 
         List<TrackSegment> listSegment = track.getTrack();
+
+        int count50 = 0;
         for (int i = 0; i < listSegment.size(); i++) {
             latLngList.add(listSegment.get(i).position);
             styleList.add(SpeedColor.getMatchingColor(list, listSegment.get(i).speed).getStyle());
+
         }
+        Log.i("SPEEDTEST", count50 + " ");
 
         polyline.setPoints(latLngList);
         polyline.setSpans(styleList);

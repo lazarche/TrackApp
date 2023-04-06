@@ -61,11 +61,9 @@ public class Track {
 
         List<TrackSegment> list = new LinkedList<>();
         String[] splitedPerSegments = data.split("-");
-        Log.d("AAAAAAAAAAAAA", splitedPerSegments.length + "");
 
         for (int i = 1; i < splitedPerSegments.length; i++) {
             String[] splitedSegment = splitedPerSegments[i].split(",");
-            Log.d("AAAAAAAAAAAAAAAAA", splitedPerSegments[i]);
             double lat = Double.parseDouble(splitedSegment[0]);
             double lon = Double.parseDouble(splitedSegment[1]);
             float speed = Float.parseFloat(splitedSegment[2]);

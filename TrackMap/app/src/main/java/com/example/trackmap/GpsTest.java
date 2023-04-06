@@ -30,6 +30,8 @@ import com.example.trackmap.track.SpeedColor;
 import com.example.trackmap.track.Track;
 import com.example.trackmap.track.TrackSegment;
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.Granularity;
+import com.google.android.gms.location.LocationAvailability;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
@@ -66,7 +68,7 @@ import java.util.Random;
 
 public class GpsTest extends AppCompatActivity implements OnMapReadyCallback, OnMapsSdkInitializedCallback {
 
-    private static final int DEFAULT_UPDATE_INTERVAL = 2500;
+    private static final int DEFAULT_UPDATE_INTERVAL = 800;
     private static final int FAST_UPDATE_INTERVAL = 5;
     private static final int PERMISSION_FINE_LOCATION = 99;
     private static final int DEFAULT_ZOOM = 17;
@@ -113,9 +115,10 @@ public class GpsTest extends AppCompatActivity implements OnMapReadyCallback, On
 
         //To change
         list = new ArrayList<>();
-        list.add(new SpeedColor(new StyleSpan(Color.GREEN), 25));
-        list.add(new SpeedColor(new StyleSpan(Color.BLUE), 60));
-        list.add(new SpeedColor(new StyleSpan(Color.YELLOW), 90));
+        list.add(new SpeedColor(new StyleSpan(Color.GREEN), 5.5f));
+        list.add(new SpeedColor(new StyleSpan(Color.BLUE), 8.3f));
+        list.add(new SpeedColor(new StyleSpan(Color.MAGENTA), 11f));
+        list.add(new SpeedColor(new StyleSpan(Color.YELLOW), 20f));
         list.add(new SpeedColor(new StyleSpan(Color.RED), 999));
 
         Collections.sort(list, new Comparator<SpeedColor>() {
@@ -250,9 +253,12 @@ public class GpsTest extends AppCompatActivity implements OnMapReadyCallback, On
 
     protected void startLocationUpdates() {
 
-        LocationRequest.Builder builder = new LocationRequest.Builder(DEFAULT_UPDATE_INTERVAL);
+        LocationRequest.Builder builder = new LocationRequest.Builder(0);
+        builder.setIntervalMillis(0);
+        builder.setMinUpdateIntervalMillis(0);
         builder.setPriority(Priority.PRIORITY_HIGH_ACCURACY);
         LocationRequest locationRequest = builder.build();
+
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             //No gps no play
@@ -268,13 +274,18 @@ public class GpsTest extends AppCompatActivity implements OnMapReadyCallback, On
                 if(location != null) {
                     Log.i("LOCATION REQUEST", "Got location : " + location);
                     updateTrack(location);
-
                     lastLoc = location;
                 }
             }
-        };
 
+             @Override
+             public void onLocationAvailability(@NonNull LocationAvailability locationAvailability) {
+                 super.onLocationAvailability(locationAvailability);
+                 Log.i("LOCATION AVAILABLE", "Got location");
+             }
+         };
         fusedLocationProviderClient.requestLocationUpdates(locationRequest, fusedTrackerCallback, Looper.getMainLooper());
+
     }
 
     @Override
@@ -300,12 +311,14 @@ public class GpsTest extends AppCompatActivity implements OnMapReadyCallback, On
                 LatLng loc = new LatLng(location.getLatitude(), location.getLongitude());
                 CameraUpdate cu = CameraUpdateFactory.newLatLngZoom(loc, DEFAULT_ZOOM);
                 map.moveCamera(cu);
+                Log.i("OVO SMETA", "OVO JAKO SMETA");
                 lastLoc = location;
             }
         });
 
         startLocationUpdates();
     }
+
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     public void updateTrack(Location location) {

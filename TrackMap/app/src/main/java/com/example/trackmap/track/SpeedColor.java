@@ -1,6 +1,7 @@
 package com.example.trackmap.track;
 
 import android.graphics.Color;
+import android.util.Log;
 
 import com.google.android.gms.maps.model.StyleSpan;
 
@@ -45,8 +46,10 @@ public class SpeedColor{
             return null;
 
         for (int i = 0; i < list.size(); i++) {
-            if(list.get(i).isUnder(speed))
+            if(list.get(i).isUnder(speed)) {
+                //Log.i("COLORS", "speed: " + speed + " " + i);
                 return list.get(i);
+            }
         }
 
         //Return largest
