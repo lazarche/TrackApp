@@ -2,14 +2,12 @@ package com.example.trackmap;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.room.Room;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
@@ -30,7 +28,6 @@ import com.example.trackmap.track.SpeedColor;
 import com.example.trackmap.track.Track;
 import com.example.trackmap.track.TrackSegment;
 import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.Granularity;
 import com.google.android.gms.location.LocationAvailability;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -47,10 +44,8 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.google.android.gms.maps.model.StrokeStyle;
 import com.google.android.gms.maps.model.StyleSpan;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 
 
 import java.text.DateFormat;
@@ -62,11 +57,10 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.Dictionary;
 import java.util.List;
 import java.util.Random;
 
-public class GpsTest extends AppCompatActivity implements OnMapReadyCallback, OnMapsSdkInitializedCallback {
+public class TrackRecord extends AppCompatActivity implements OnMapReadyCallback, OnMapsSdkInitializedCallback {
 
     private static final int DEFAULT_UPDATE_INTERVAL = 800;
     private static final int FAST_UPDATE_INTERVAL = 5;
@@ -104,12 +98,13 @@ public class GpsTest extends AppCompatActivity implements OnMapReadyCallback, On
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         MapsInitializer.initialize(getApplicationContext(), MapsInitializer.Renderer.LATEST, this);
+        setContentView(R.layout.activity_track_record);
 
-        setContentView(R.layout.activity_gps_test);
+        //Hides bar
+        getSupportActionBar().hide();
 
         supportMapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.fragmentMap);
         supportMapFragment.getMapAsync(this);
-
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
@@ -179,11 +174,11 @@ public class GpsTest extends AppCompatActivity implements OnMapReadyCallback, On
 
     private boolean DiscardRecording() {
         if(!recording) {
-            Toast.makeText(GpsTest.this, "Recording must be in progress", Toast.LENGTH_SHORT).show();
+            Toast.makeText(TrackRecord.this, "Recording must be in progress", Toast.LENGTH_SHORT).show();
             return false;
         }
 
-        Toast.makeText(GpsTest.this, "Recording is discarded", Toast.LENGTH_SHORT).show();
+        Toast.makeText(TrackRecord.this, "Recording is discarded", Toast.LENGTH_SHORT).show();
 
         //Reset track
         RestartPolyline();
@@ -199,7 +194,7 @@ public class GpsTest extends AppCompatActivity implements OnMapReadyCallback, On
         if(!recording)
             return false;
 
-        Toast.makeText(GpsTest.this, "Recording is saved", Toast.LENGTH_SHORT).show();
+        Toast.makeText(TrackRecord.this, "Recording is saved", Toast.LENGTH_SHORT).show();
         recording = false;
         recordButton.setImageResource(R.drawable.record_start);
 
@@ -223,11 +218,11 @@ public class GpsTest extends AppCompatActivity implements OnMapReadyCallback, On
 
     private void CancelRecording() {
         if(!recording) {
-            Toast.makeText(GpsTest.this, "Recording must be in progress", Toast.LENGTH_SHORT).show();
+            Toast.makeText(TrackRecord.this, "Recording must be in progress", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        Toast.makeText(GpsTest.this, "Tap and hold to discard recording", Toast.LENGTH_SHORT).show();
+        Toast.makeText(TrackRecord.this, "Tap and hold to discard recording", Toast.LENGTH_SHORT).show();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -246,7 +241,7 @@ public class GpsTest extends AppCompatActivity implements OnMapReadyCallback, On
 
             trackData = new Track(name, strDate);
         } else {
-            Toast.makeText(GpsTest.this, "Tap and hold stop button to stop", Toast.LENGTH_SHORT).show();
+            Toast.makeText(TrackRecord.this, "Tap and hold stop button to stop", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -262,7 +257,7 @@ public class GpsTest extends AppCompatActivity implements OnMapReadyCallback, On
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             //No gps no play
-            Toast.makeText(GpsTest.this, "Relaunch app and give location permission", Toast.LENGTH_SHORT).show();
+            Toast.makeText(TrackRecord.this, "Relaunch app and give location permission", Toast.LENGTH_SHORT).show();
             finish();
         }
 
@@ -286,6 +281,7 @@ public class GpsTest extends AppCompatActivity implements OnMapReadyCallback, On
          };
         fusedLocationProviderClient.requestLocationUpdates(locationRequest, fusedTrackerCallback, Looper.getMainLooper());
 
+
     }
 
     @Override
@@ -299,7 +295,7 @@ public class GpsTest extends AppCompatActivity implements OnMapReadyCallback, On
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             //No gps no play
-            Toast.makeText(GpsTest.this, "Relaunch app and give location permission", Toast.LENGTH_SHORT).show();
+            Toast.makeText(TrackRecord.this, "Relaunch app and give location permission", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }

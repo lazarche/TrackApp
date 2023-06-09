@@ -1,29 +1,20 @@
 package com.example.trackmap.adapter;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.view.ContextMenu;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.trackmap.GpsTest;
-import com.example.trackmap.MainActivity;
 import com.example.trackmap.R;
 import com.example.trackmap.TrackView;
 import com.example.trackmap.database.TrackData;
 
-import java.util.Calendar;
 import java.util.List;
 
 public class TrackAdapter extends RecyclerView.Adapter<TrackAdapter.TrackViewHolder> {

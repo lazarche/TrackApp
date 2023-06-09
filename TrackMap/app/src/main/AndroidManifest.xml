@@ -16,7 +16,22 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.TrackMap"
         tools:targetApi="31">
-
+        <activity
+            android:name=".TestAct"
+            android:exported="false"
+            android:label="@string/title_activity_test"
+            android:theme="@style/Theme.TrackMap.NoActionBar">
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+        <activity
+            android:name=".TrackHighlightCustomization"
+            android:exported="false">
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
         <!--
              TODO: Before you run your application, you need a Google Maps API key.
 
@@ -37,7 +52,7 @@
             android:exported="false"
             android:label="@string/title_activity_track_view" />
         <activity
-            android:name=".GpsTest"
+            android:name=".TrackRecord"
             android:exported="false">
             <meta-data
                 android:name="android.app.lib_name"

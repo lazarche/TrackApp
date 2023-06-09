@@ -9,16 +9,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.text.InputType;
-import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
@@ -28,7 +25,6 @@ import com.example.trackmap.database.AppDatabase;
 import com.example.trackmap.database.TrackDao;
 import com.example.trackmap.database.TrackData;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -38,13 +34,40 @@ public class MainActivity extends AppCompatActivity {
     private static final int GPS_FINE_PERMISSION_CODE = 80;
 
     RecyclerView recyclerView;
-    TrackAdapter trackAdapter;
 
-    @SuppressLint("WrongThread")
+    AppDatabase db;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        //Hides bar
+        getSupportActionBar().hide();
+
+        SetUpDatabase();
+        SetUpButtons();
+        CheckPermissions();
+        PopulateView();
+    }
+
+    private void SetUpDatabase() {
+       db = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "TrackMap").allowMainThreadQueries().fallbackToDestructiveMigration().build();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        PopulateView();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
+
+    void SetUpButtons() {
+        //Add new track btn
         ImageButton btn = findViewById(R.id.btnMap);
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -69,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
                         if(name == null)
                             name = "DEFAULT NAME";
 
-                        Intent intent = new Intent(MainActivity.this, GpsTest.class);
+                        Intent intent = new Intent(MainActivity.this, TrackRecord.class);
                         intent.putExtra("name", name);
                         startActivity(intent);
                     }
@@ -85,18 +108,19 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        CheckPermissions();
-        PopulateView();
+        ImageButton trackH = findViewById(R.id.trackHighlightBtn);
+        trackH.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, TrackHighlightCustomization.class);
+                startActivity(intent);
+            }
+        });
     }
 
     void PopulateView() {
-        //Get data
-        AppDatabase db = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "TrackMap").allowMainThreadQueries().fallbackToDestructiveMigration().build();
-        //db.clearAllTables();
         TrackDao trackDao = db.trackDao();
         List<TrackData> tracks = trackDao.getAll();
-        db.close();
-
 
         //Set up list
         recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
@@ -104,35 +128,25 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(layoutManager);
         TrackAdapter trackAdapter = new TrackAdapter(tracks, getApplicationContext());
         recyclerView.setAdapter(trackAdapter);
+        db.close();
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        PopulateView();
-    }
-
-
+    //Permissions
     private void CheckPermissions() {
         checkPermission(Manifest.permission.ACCESS_FINE_LOCATION, GPS_FINE_PERMISSION_CODE);
         checkPermission(Manifest.permission.ACCESS_COARSE_LOCATION, GPS_PERMISSION_CODE);
         checkPermission(Manifest.permission.INTERNET, INTERNET_PERMISSION_CODE);
     }
 
-    public void checkPermission(String permission, int requestCode)
-    {
+    public void checkPermission(String permission, int requestCode) {
         // Checking if permission is not granted
         if (ContextCompat.checkSelfPermission(MainActivity.this, permission) == PackageManager.PERMISSION_DENIED) {
             ActivityCompat.requestPermissions(MainActivity.this, new String[] { permission }, requestCode);
         }
-        else {
-            Toast.makeText(MainActivity.this, "Permission already granted", Toast.LENGTH_SHORT).show();
-        }
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)
-    {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
         if (requestCode == GPS_PERMISSION_CODE || requestCode == GPS_FINE_PERMISSION_CODE) {

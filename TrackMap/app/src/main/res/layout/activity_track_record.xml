@@ -7,7 +7,7 @@
     android:layout_gravity="bottom"
     android:background="@color/background"
     app:layout_anchorGravity="bottom"
-    tools:context=".GpsTest">
+    tools:context=".TrackRecord">
 
 
         <!--        <fragment-->

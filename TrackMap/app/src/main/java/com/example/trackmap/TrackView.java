@@ -51,7 +51,6 @@ public class TrackView extends FragmentActivity implements OnMapReadyCallback, O
         binding = ActivityTrackViewBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-
         //Get data
         Bundle extras = getIntent().getExtras();
         if(extras != null) {
