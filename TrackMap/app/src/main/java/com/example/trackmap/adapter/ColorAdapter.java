@@ -1,9 +1,12 @@
 package com.example.trackmap.adapter;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Color;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +22,9 @@ import com.example.trackmap.R;
 import com.example.trackmap.TrackHighlightCustomization;
 import com.example.trackmap.database.ColorData;
 import com.example.trackmap.database.TrackData;
+import com.skydoves.colorpickerview.ColorEnvelope;
+import com.skydoves.colorpickerview.ColorPickerDialog;
+import com.skydoves.colorpickerview.listeners.ColorEnvelopeListener;
 
 import org.w3c.dom.Text;
 
@@ -33,6 +39,8 @@ public class ColorAdapter extends RecyclerView.Adapter<ColorAdapter.ColorViewHol
     public ColorAdapter(List<ColorData> data, Context context) {
         itemList = data;
         this.context = context;
+
+        sortList();
     }
 
     @NonNull
@@ -121,6 +129,33 @@ public class ColorAdapter extends RecyclerView.Adapter<ColorAdapter.ColorViewHol
                 });
 
                 dialog.show();
+            });
+
+            colorBtn.setOnClickListener(v -> {
+                new ColorPickerDialog.Builder(itemView.getContext(), AlertDialog.THEME_DEVICE_DEFAULT_DARK)
+                        .setTitle("ColorPicker Dialog")
+                        .setPreferenceName("MyColorPickerDialog")
+                        .setPositiveButton("Confirm",
+                                new ColorEnvelopeListener() {
+                                    @Override
+                                    public void onColorSelected(ColorEnvelope envelope, boolean fromUser) {
+                                        colorBtn.setBackgroundColor(envelope.getColor());
+
+                                        String hexColor = String.format("#%06X", (0xFFFFFF & envelope.getColor()));
+
+                                        itemList.get(position).color = hexColor;
+                                    }
+                                })
+                        .setNegativeButton("Cancel",
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                dialogInterface.dismiss();
+                            }
+                        })
+                        .attachAlphaSlideBar(false) // default is true. If false, do not show the AlphaSlideBar.
+                        .attachBrightnessSlideBar(false)  // default is true. If false, do not show the BrightnessSlideBar.
+                        .show();
             });
         }
     }

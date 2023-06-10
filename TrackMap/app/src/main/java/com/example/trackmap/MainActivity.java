@@ -64,6 +64,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if(db.isOpen())
+            db.close();
     }
 
     void SetUpButtons() {

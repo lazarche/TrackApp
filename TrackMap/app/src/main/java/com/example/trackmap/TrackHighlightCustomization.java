@@ -1,6 +1,8 @@
 package com.example.trackmap;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
@@ -8,6 +10,7 @@ import androidx.room.Room;
 import android.app.Dialog;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -18,6 +21,7 @@ import com.example.trackmap.adapter.ColorAdapter;
 import com.example.trackmap.adapter.TrackAdapter;
 import com.example.trackmap.database.AppDatabase;
 import com.example.trackmap.database.ColorData;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +39,7 @@ public class TrackHighlightCustomization extends AppCompatActivity {
         //Hides bar
         getSupportActionBar().hide();
 
+
         db = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "TrackMap").allowMainThreadQueries().fallbackToDestructiveMigration().build();
         List<ColorData> colors = db.colorDao().getAll();
 
@@ -46,6 +51,52 @@ public class TrackHighlightCustomization extends AppCompatActivity {
         recyclerView.setAdapter(colorAdapter);
 
         SetUpButtons();
+        SwipeToDelete();
+    }
+
+    void SwipeToDelete() {
+        new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+                // this method is called
+                // when the item is moved.
+                return false;
+            }
+
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+                // this method is called when we swipe our item to right direction.
+                // on below line we are getting the item at a particular position.
+                ColorData deletedCourse = ((ColorAdapter) recyclerView.getAdapter()).itemList.get(viewHolder.getAdapterPosition());
+
+                // below line is to get the position
+                // of the item at that position.
+                int position = viewHolder.getAdapterPosition();
+
+                // this method is called when item is swiped.
+                // below line is to remove item from our array list.
+                ((ColorAdapter) recyclerView.getAdapter()).itemList.remove(viewHolder.getAdapterPosition());
+
+                // below line is to notify our item is removed from adapter.
+                recyclerView.getAdapter().notifyItemRemoved(viewHolder.getAdapterPosition());
+
+                // below line is to display our snackbar with action.
+                Snackbar.make(recyclerView, deletedCourse.limit +"", Snackbar.LENGTH_LONG).setAction("Undo", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        // adding on click listener to our action of snack bar.
+                        // below line is to add our item to array list with a position.
+                        ((ColorAdapter) recyclerView.getAdapter()).itemList.add(position, deletedCourse);
+
+                        // below line is to notify item is
+                        // added to our adapter class.
+                        recyclerView.getAdapter().notifyItemInserted(position);
+                    }
+                }).show();
+            }
+            // at last we are adding this
+            // to our recycler view.
+        }).attachToRecyclerView(recyclerView);
     }
 
     public void SaveNewData() {

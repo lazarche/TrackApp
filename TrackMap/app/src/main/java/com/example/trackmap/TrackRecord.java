@@ -22,6 +22,7 @@ import android.widget.Toast;
 
 
 import com.example.trackmap.database.AppDatabase;
+import com.example.trackmap.database.ColorData;
 import com.example.trackmap.database.TrackDao;
 import com.example.trackmap.database.TrackData;
 import com.example.trackmap.track.SpeedColor;
@@ -108,21 +109,8 @@ public class TrackRecord extends AppCompatActivity implements OnMapReadyCallback
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
-        //To change
-        list = new ArrayList<>();
-        list.add(new SpeedColor(new StyleSpan(Color.GREEN), 5.5f));
-        list.add(new SpeedColor(new StyleSpan(Color.BLUE), 8.3f));
-        list.add(new SpeedColor(new StyleSpan(Color.MAGENTA), 11f));
-        list.add(new SpeedColor(new StyleSpan(Color.YELLOW), 20f));
-        list.add(new SpeedColor(new StyleSpan(Color.RED), 999));
 
-        Collections.sort(list, new Comparator<SpeedColor>() {
-            @Override
-            public int compare(SpeedColor o1, SpeedColor o2) {
-                return -Float.compare(o1.getSpeedLimit(), o2.getSpeedLimit());
-            }
-        });
-
+        LoadSpeedList();
 
         //Get extas
         Bundle extras = getIntent().getExtras();
@@ -134,6 +122,31 @@ public class TrackRecord extends AppCompatActivity implements OnMapReadyCallback
     }
 
     /* /region */
+
+
+
+    private void LoadSpeedList() {
+        AppDatabase db = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "TrackMap").allowMainThreadQueries().fallbackToDestructiveMigration().build();
+        List<ColorData> colors = db.colorDao().getAll();
+        db.close();
+
+
+        list = new ArrayList<>();
+        for (ColorData colorData : colors) {
+            list.add(new SpeedColor(new StyleSpan(Color.parseColor(colorData.color)),colorData.limit * (5/18)));
+        }
+
+        if(list.size() == 0)
+            list.add(new SpeedColor(new StyleSpan(Color.GREEN),200));
+
+        Collections.sort(list, new Comparator<SpeedColor>() {
+            @Override
+            public int compare(SpeedColor o1, SpeedColor o2) {
+                return -Float.compare(o1.getSpeedLimit(), o2.getSpeedLimit());
+            }
+        });
+
+    }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void SetUpUi() {
