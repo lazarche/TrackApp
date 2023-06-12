@@ -20,7 +20,6 @@
             android:name=".TestAct"
             android:exported="false"
             android:label="@string/title_activity_test"
-            android:screenOrientation="portrait"
             android:theme="@style/Theme.TrackMap.NoActionBar">
             <meta-data
                 android:name="android.app.lib_name"
@@ -28,7 +27,6 @@
         </activity>
         <activity
             android:name=".TrackHighlightCustomization"
-            android:screenOrientation="portrait"
             android:exported="false">
             <meta-data
                 android:name="android.app.lib_name"
@@ -40,12 +38,12 @@
 
         <activity
             android:name=".TrackView"
-            android:screenOrientation="portrait"
+            android:configChanges="orientation|screenSize"
             android:exported="false"
             android:label="@string/title_activity_track_view" />
         <activity
             android:name=".TrackRecord"
-            android:screenOrientation="portrait"
+            android:configChanges="orientation|screenSize"
             android:exported="false">
             <meta-data
                 android:name="android.app.lib_name"

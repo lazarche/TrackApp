@@ -46,7 +46,12 @@ public class TrackAdapter extends RecyclerView.Adapter<TrackAdapter.TrackViewHol
         holder.textTitle.setText(itemList.get(position).name);
         holder.textTitle.setTag(itemList.get(position).idTrack);
         holder.textDate.setText("Date: " + itemList.get(position).date);
-        holder.textTime.setText("Time: " + itemList.get(position).time/1000);
+
+        int time = Math.round(itemList.get(position).time/1000);
+        int min = time/60;
+        int sec = time%60;
+
+        holder.textTime.setText("Time: " + min + ":" + sec);
     }
 
     @Override

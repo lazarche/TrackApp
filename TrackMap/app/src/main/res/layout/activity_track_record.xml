@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     android:layout_gravity="bottom"
     android:background="@color/background"
+    android:keepScreenOn="true"
     app:layout_anchorGravity="bottom"
     tools:context=".TrackRecord">
 
@@ -41,18 +42,18 @@
             tools:ignore="TouchTargetSizeCheck" />
 
         <LinearLayout
-            android:id="@+id/linearLayout"
+            android:id="@+id/llButtonHolder"
             android:layout_width="match_parent"
             android:layout_height="105dp"
             android:layout_gravity="bottom"
             android:layout_marginStart="5dp"
             android:layout_marginEnd="5dp"
-            android:gravity="center"
+            android:gravity="bottom"
             android:orientation="horizontal">
 
                 <ImageButton
                     android:id="@+id/btn_record"
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:backgroundTint="@android:color/transparent"
@@ -63,7 +64,7 @@
 
                 <ImageButton
                     android:id="@+id/btn_cancel_record"
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:backgroundTint="@android:color/transparent"

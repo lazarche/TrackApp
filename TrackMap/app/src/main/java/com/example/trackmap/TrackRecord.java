@@ -9,6 +9,7 @@ import androidx.room.Room;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.Build;
@@ -16,8 +17,12 @@ import android.os.Bundle;
 
 import android.os.Looper;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 
@@ -63,6 +68,8 @@ import java.util.Random;
 
 public class TrackRecord extends AppCompatActivity implements OnMapReadyCallback, OnMapsSdkInitializedCallback {
 
+    final float KMHTOMS = 0.2777778f;
+
     private static final int DEFAULT_UPDATE_INTERVAL = 800;
     private static final int FAST_UPDATE_INTERVAL = 5;
     private static final int PERMISSION_FINE_LOCATION = 99;
@@ -84,6 +91,8 @@ public class TrackRecord extends AppCompatActivity implements OnMapReadyCallback
     ImageButton followButton;
     ImageButton recordButton;
     ImageButton cancelButton;
+    LinearLayout buttonLayout;
+    FrameLayout parentLayout;
 
     //Recording
     boolean recording = false;
@@ -121,19 +130,16 @@ public class TrackRecord extends AppCompatActivity implements OnMapReadyCallback
         SetUpUi();
     }
 
-    /* /region */
-
-
-
     private void LoadSpeedList() {
         AppDatabase db = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "TrackMap").allowMainThreadQueries().fallbackToDestructiveMigration().build();
         List<ColorData> colors = db.colorDao().getAll();
         db.close();
 
 
-        list = new ArrayList<>();
+        list = new ArrayList<SpeedColor>();
         for (ColorData colorData : colors) {
-            list.add(new SpeedColor(new StyleSpan(Color.parseColor(colorData.color)),colorData.limit * (5/18)));
+            float floatLimit = (float)colorData.limit;
+            list.add(new SpeedColor(new StyleSpan(Color.parseColor(colorData.color)),floatLimit * KMHTOMS));
         }
 
         if(list.size() == 0)
@@ -146,6 +152,7 @@ public class TrackRecord extends AppCompatActivity implements OnMapReadyCallback
             }
         });
 
+        Log.i("SPEEDCOLOR LIST", "List loaded: " + list.size());
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -165,6 +172,9 @@ public class TrackRecord extends AppCompatActivity implements OnMapReadyCallback
                 }
             }
         });
+
+        parentLayout = findViewById(R.id.fragmentMap);
+        buttonLayout = findViewById(R.id.llButtonHolder);
         recordButton = (ImageButton) findViewById(R.id.btn_record);
         recordButton.setOnClickListener(v -> StartRecording());
         recordButton.setOnLongClickListener(v -> StopRecording());
@@ -258,7 +268,6 @@ public class TrackRecord extends AppCompatActivity implements OnMapReadyCallback
         }
     }
 
-
     protected void startLocationUpdates() {
 
         LocationRequest.Builder builder = new LocationRequest.Builder(0);
@@ -320,14 +329,12 @@ public class TrackRecord extends AppCompatActivity implements OnMapReadyCallback
                 LatLng loc = new LatLng(location.getLatitude(), location.getLongitude());
                 CameraUpdate cu = CameraUpdateFactory.newLatLngZoom(loc, DEFAULT_ZOOM);
                 map.moveCamera(cu);
-                Log.i("OVO SMETA", "OVO JAKO SMETA");
                 lastLoc = location;
             }
         });
 
         startLocationUpdates();
     }
-
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     public void updateTrack(Location location) {
@@ -340,7 +347,6 @@ public class TrackRecord extends AppCompatActivity implements OnMapReadyCallback
         points.add(point);
         track.setPoints(points);
 
-        Random r = new Random();
         //Color
         StyleSpan ss = SpeedColor.getMatchingColor(list, location.getSpeed()).getStyle();
         List<StyleSpan> ssPoints = track.getSpans();
@@ -385,5 +391,28 @@ public class TrackRecord extends AppCompatActivity implements OnMapReadyCallback
     protected void onDestroy() {
         super.onDestroy();
         fusedLocationProviderClient.removeLocationUpdates(fusedTrackerCallback);
+    }
+
+    @Override
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        Log.i("AAAAAAA", "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+
+        final float scale = getApplicationContext().getResources().getDisplayMetrics().density;
+
+        if(newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            buttonLayout.setOrientation(LinearLayout.HORIZONTAL);
+            FrameLayout.LayoutParams newLayout = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, (int) (105 * scale + 0.5f));
+            newLayout.gravity = Gravity.BOTTOM;
+            buttonLayout.setLayoutParams(newLayout);
+        } else {
+            buttonLayout.setOrientation(LinearLayout.VERTICAL);
+            buttonLayout.setLayoutParams(new FrameLayout.LayoutParams((int) (105 * scale + 0.5f), FrameLayout.LayoutParams.MATCH_PARENT));
+        }
+        buttonLayout.requestLayout();
+        buttonLayout.forceLayout();
+        parentLayout.forceLayout();
+        parentLayout.requestLayout();
+        parentLayout.invalidate();
     }
 }
